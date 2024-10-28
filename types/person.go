@@ -20,13 +20,6 @@ type CreatePersonParams struct {
 	Hobbies []string
 }
 
-type UpdatePersonParams struct {
-	ID      string
-	Name    string
-	Age     string
-	Hobbies []string
-}
-
 func (params CreatePersonParams) Validate() map[string]string {
 	errors := map[string]string{}
 	if len(params.Name) < minNameLength || len(params.Name) > maxNameLength {
@@ -50,11 +43,19 @@ type Person struct {
 	Hobbies []string
 }
 
-func NewUserFromParams(params CreatePersonParams) *Person {
+func NewPersonFromParams(params CreatePersonParams) *Person {
 	id := uuid.New().String()
 
 	return &Person{
 		ID:      id,
+		Name:    params.Name,
+		Age:     params.Age,
+		Hobbies: params.Hobbies,
+	}
+}
+
+func UpdatedPersonFromParams(params CreatePersonParams) *Person {
+	return &Person{
 		Name:    params.Name,
 		Age:     params.Age,
 		Hobbies: params.Hobbies,
