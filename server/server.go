@@ -39,8 +39,8 @@ func NewServer(personStore db.PersonStore) *Server {
 }
 
 func (srv *Server) serve() {
-	var id int
-	fmt.Println("listening for clients")
+	var id int = 1
+	fmt.Println("listening for db clients")
 	for {
 		select {
 		case <-srv.quit:

@@ -17,3 +17,11 @@ func CheckUserExists(personStore db.PersonStore) fiber.Handler {
 		return c.Next()
 	}
 }
+
+func NotFoundMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		return c.Status((fiber.StatusNotFound)).JSON(fiber.Map{
+			"error": "Endpoint not found",
+		})
+	}
+}
