@@ -11,6 +11,15 @@
 #### Create a Person
 - **Endpoint**: `POST /person`
 - **Description**: Creates a new person.
+- **Request Body**:
+  ```json
+  {
+    "name": "kebede",
+    "age": "20",
+    "hobbies": ["painting", "reading"]
+  }
+  ```
+
   
 #### Get a Person
 - **Endpoint**: `GET /person/:id`
@@ -23,6 +32,14 @@
 #### Update a Person
 - **Endpoint**: `PUT /person/:id`
 - **Description**: Updates a person by ID.
+- **Request Body**:
+  ```json
+  {
+    "name": "kebede",
+    "age": "60",
+    "hobbies": ["hiking", "walking"]
+  }
+  ```
   
 #### Delete a Person
 - **Endpoint**: `DELETE /person/:id`
@@ -39,7 +56,7 @@
    git clone https://github.com/Gedion-01/GoInMemoryCRUD
 ```
 ```
-   cd go-crud-challenge
+   cd GoInMemoryCRUD
 ```
    
 2. **Install Dependencies**:
