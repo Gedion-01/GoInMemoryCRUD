@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Gedion-01/Go-Crud-Challenge/db"
 	"github.com/Gedion-01/Go-Crud-Challenge/types"
 )
 
@@ -15,12 +16,12 @@ type Server struct {
 	listener         net.Listener
 	quit             chan struct{}
 	exited           chan struct{}
-	db               memoryDB
+	db               db.PersonStore
 	connections      map[int]net.Conn
 	connCloseTimeout time.Duration
 }
 
-func NewServer() *Server {
+func NewServer(personStore db.PersonStore) *Server {
 	l, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatal("failed to create listener", err.Error())
@@ -29,7 +30,7 @@ func NewServer() *Server {
 		listener:         l,
 		quit:             make(chan struct{}),
 		exited:           make(chan struct{}),
-		db:               *newDB(),
+		db:               personStore,
 		connections:      map[int]net.Conn{},
 		connCloseTimeout: 10 * time.Second,
 	}
@@ -135,13 +136,13 @@ func (srv *Server) handleConn(conn net.Conn) {
 				write(conn, strings.Join(errorMessages, "\n"))
 				continue
 			}
-			person := types.NewUserFromParams(personParams)
+			person := types.NewPersonFromParams(personParams)
 
-			srv.db.set(person)
+			srv.db.Set(person)
 			write(conn, "1 row inserted: \nID: %s, \nName: %s, \nAge: %s, \nHobbies: %v", person.ID, person.Name, person.Age, person.Hobbies)
 		case len(values) == 2 && values[0] == "get":
 			id := values[1]
-			person, found := srv.db.get(id)
+			person, found := srv.db.Get(id)
 			if !found {
 				write(conn, fmt.Sprintf("Person with ID %s not found", id))
 			} else {
@@ -149,7 +150,7 @@ func (srv *Server) handleConn(conn net.Conn) {
 			}
 		case len(values) >= 2 && values[0] == "update":
 			id := values[1]
-			updatePersonParams := &types.UpdatePersonParams{}
+			updatePersonParams := &types.CreatePersonParams{}
 			if len(values) > 2 {
 				updatePersonParams.Name = values[2]
 			}
@@ -160,25 +161,25 @@ func (srv *Server) handleConn(conn net.Conn) {
 				updatePersonParams.Hobbies = strings.Split(values[4], ",")
 			}
 
-			updatedPerson, status := srv.db.update(id, updatePersonParams)
+			updatedPerson, status := srv.db.Update(id, updatePersonParams)
 			if !status {
 				write(conn, "Person with ID %s not found", id)
 			} else {
 				write(conn, "1 row updated: \nID: %s, \nName: %s, \nAge: %s, \nHobbies: %v", updatedPerson.ID, updatedPerson.Name, updatedPerson.Age, updatedPerson.Hobbies)
 			}
 		case len(values) == 2 && values[0] == "delete":
-			status := srv.db.delete(values[1])
+			status := srv.db.Delete(values[1])
 			if !status {
 				write(conn, fmt.Sprintf("Person with ID %s not found", values[1]))
 			} else {
 				write(conn, "1 row deleted")
 			}
 		case len(values) == 1 && values[0] == "all":
-			persons := srv.db.all()
-			if len(persons) == 0 {
+			persons := srv.db.All()
+			if len(*persons) == 0 {
 				write(conn, "No persons found")
 			} else {
-				writeAll(conn, persons)
+				writeAll(conn, *persons)
 			}
 		case len(values) == 1 && values[0] == "exit":
 			if err := conn.Close(); err != nil {
